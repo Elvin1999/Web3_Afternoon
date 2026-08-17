@@ -1,6 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using Web3_Afternoon.Data;
+using Web3_Afternoon.Formatters;
 using Web3_Afternoon.Repository.Abstract;
 using Web3_Afternoon.Repository.Concrete;
 using Web3_Afternoon.Services;
@@ -17,7 +18,11 @@ namespace Web3_Afternoon
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers(options =>
+            {
+                options.OutputFormatters.Add(new CarVCardOutputFormatter());
+            });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -26,6 +31,11 @@ namespace Web3_Afternoon
             var connection = builder.Configuration.GetConnectionString("DefaultConnection");
 
             builder.Services.AddDbContext<CarDBContext>(options => options.UseSqlServer(connection));
+
+            builder.Services.AddAutoMapper(cfg =>
+            {
+                cfg.LicenseKey = builder.Configuration["AutoMapper:LicenseKey"]!;
+            }, typeof(Program).Assembly);
 
             //builder.Services.AddSingleton<ICalculateService, CalculateService>();
             //builder.Services.AddScoped<ICalculateService, CalculateService>();

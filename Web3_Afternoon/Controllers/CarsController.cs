@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Web3_Afternoon.Dtos;
 using Web3_Afternoon.Entities;
@@ -11,10 +12,12 @@ namespace Web3_Afternoon.Controllers
     public class CarsController : ControllerBase
     {
         private readonly ICarService _carService;
+        private readonly IMapper _mapper;
 
-        public CarsController(ICarService carService)
+        public CarsController(ICarService carService, IMapper mapper)
         {
             _carService = carService;
+            _mapper = mapper;
         }
 
         //[HttpGet]
@@ -35,10 +38,12 @@ namespace Web3_Afternoon.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<CarDto>> Get()
         {
-            var cars = _carService.Get()
-                .Select(c => new CarDto { Id = c.Id, Model = c.Model, Vendor = c.Vendor });
+            //var cars = _carService.Get()
+            //    .Select(c => new CarDto { Id = c.Id, Model = c.Model, Vendor = c.Vendor });
+            var cars = _carService.Get();
+            var returnDto = _mapper.Map<IEnumerable<CarDto>>(cars);
 
-            return Ok(cars);
+            return Ok(returnDto);
         }
 
         [HttpGet("{id:int}")]
@@ -46,12 +51,13 @@ namespace Web3_Afternoon.Controllers
         {
             var car = _carService.Get(id);
             if (car == null) return NotFound();
-            var result = new CarDto
-            {
-                Id = car.Id,
-                Model = car.Model,
-                Vendor = car.Vendor
-            };
+            //var result = new CarDto
+            //{
+            //    Id = car.Id,
+            //    Model = car.Model,
+            //    Vendor = car.Vendor
+            //};
+            var result = _mapper.Map<CarDto>(car);
             return Ok(result);
         }
 
@@ -60,15 +66,28 @@ namespace Web3_Afternoon.Controllers
         {
             var car = _carService.Get(id);
             if (car == null) return NotFound();
-            var result = new CarExtendDto
-            {
-                Id = car.Id,
-                Model = car.Model,
-                Vendor = car.Vendor,
-                Engine=car.Engine,
-                Year=car.Year,
-                Age=_carService.GetCarAge(car)
-            };
+            //var result = new CarExtendDto
+            //{
+            //    Id = car.Id,
+            //    Model = car.Model,
+            //    Vendor = car.Vendor,
+            //    Engine=car.Engine,
+            //    Year=car.Year,
+            //    Age=_carService.GetCarAge(car)
+            //};
+
+            var result = _mapper.Map<CarExtendDto>(car);
+
+            return Ok(result);
+        }
+
+        [HttpGet("extend")]
+        public ActionResult<IEnumerable<CarExtendDto>> GetExtendAll()
+        {
+            var cars = _carService.Get();
+
+            var result = _mapper.Map<IEnumerable<CarExtendDto>>(cars);
+
             return Ok(result);
         }
 
@@ -77,23 +96,28 @@ namespace Web3_Afternoon.Controllers
         {
             try
             {
-                var car = new Car
-                {
-                    Engine = dto.Engine,
-                    Model = dto.Model,
-                    Vendor = dto.Vendor,
-                    Year = dto.Year,
-                };
+                //var car = new Car
+                //{
+                //    Engine = dto.Engine,
+                //    Model = dto.Model,
+                //    Vendor = dto.Vendor,
+                //    Year = dto.Year,
+                //};
+
+                var car = _mapper.Map<Car>(dto);
+
                 var createdCar = _carService.Add(car);
-               
-                var returnDto = new CarExtendDto
-                {
-                     Id=createdCar.Id,
-                     Model=createdCar.Model,
-                     Vendor=createdCar.Vendor,
-                     Year=createdCar.Year,
-                     Engine= createdCar.Engine,
-                };
+
+                //var returnDto = new CarExtendDto
+                //{
+                //     Id=createdCar.Id,
+                //     Model=createdCar.Model,
+                //     Vendor=createdCar.Vendor,
+                //     Year=createdCar.Year,
+                //     Engine= createdCar.Engine,
+                //};
+
+                var returnDto = _mapper.Map<CarExtendDto>(createdCar);
 
                 return CreatedAtAction(nameof(Get),
                     new { id = returnDto.Id },

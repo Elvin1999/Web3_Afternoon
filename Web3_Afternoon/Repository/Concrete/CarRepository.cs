@@ -1,5 +1,8 @@
-﻿using Web3_Afternoon.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using Web3_Afternoon.Data;
 using Web3_Afternoon.Entities;
+using Web3_Afternoon.Models;
 using Web3_Afternoon.Repository.Abstract;
 
 namespace Web3_Afternoon.Repository.Concrete
@@ -13,35 +16,65 @@ namespace Web3_Afternoon.Repository.Concrete
             _context = context;
         }
 
-        public Car Add(Car car)
+        public async Task<Car> Add(Car car)
         {
-            var createdCar = _context.Cars.Add(car).Entity;
+            var createdCar = (await _context.Cars.AddAsync(car)).Entity;
             return createdCar;
         }
 
-        public void Delete(Car car)
+        public async Task Delete(Car car)
         {
-            _context.Cars.Remove(car);
+            await Task.Run(() =>
+            {
+                _context.Cars.Remove(car);
+            });
         }
 
-        public IQueryable<Car> Get()
+        public async Task<List<Car>> Get()
         {
-            return _context.Cars;
+            return await _context.Cars.ToListAsync();
         }
 
-        public Car? Get(int id)
+        public async Task<Car?> Get(int id)
         {
-            return _context.Cars.SingleOrDefault(c => c.Id == id);
+            return await _context.Cars.SingleOrDefaultAsync(c => c.Id == id);
         }
 
-        public bool SaveChanges()
+        public async Task<PagedResult<Car>> GetAll(int page, int pageSize)
         {
-            return _context.SaveChanges() > 0;
+            var query = _context.Cars;
+
+            var totalCount = await query.CountAsync();
+
+            var cars = await query
+                .OrderBy(i => i.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Car>
+            {
+                items=cars,
+                Page = page,
+                TotalCount = totalCount,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling(totalCount/(double)pageSize)
+            };
+                
+                
         }
 
-        public Car Update(Car car)
+        public async Task<bool> SaveChanges()
         {
-            var updatedCar=_context.Cars.Update(car).Entity;
+            return (await _context.SaveChangesAsync()) > 0;
+        }
+
+        public async Task<Car> Update(Car car)
+        {
+            var updatedCar = await Task.Run(() =>
+            {
+                return _context.Cars.Update(car).Entity;
+            });
             return updatedCar;
         }
     }

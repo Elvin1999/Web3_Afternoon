@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Web3_Afternoon.Dtos;
 using Web3_Afternoon.Entities;
+using Web3_Afternoon.Models;
 using Web3_Afternoon.Services.Abstract;
 
 namespace Web3_Afternoon.Controllers
@@ -36,20 +37,27 @@ namespace Web3_Afternoon.Controllers
         //}
 
         [HttpGet]
-        public ActionResult<IEnumerable<CarDto>> Get()
+        public async Task<ActionResult<IEnumerable<CarDto>>> Get()
         {
             //var cars = _carService.Get()
             //    .Select(c => new CarDto { Id = c.Id, Model = c.Model, Vendor = c.Vendor });
-            var cars = _carService.Get();
+            var cars = await _carService.Get();
             var returnDto = _mapper.Map<IEnumerable<CarDto>>(cars);
 
             return Ok(returnDto);
         }
 
-        [HttpGet("{id:int}")]
-        public ActionResult<CarDto> Get(int id)
+        [HttpGet("partial")]
+        public async Task<ActionResult<PagedResult<Car>>> GetAll(int page=1,int pageSize = 10)
         {
-            var car = _carService.Get(id);
+            var carsFromService = await _carService.GetAll(page, pageSize);
+            return Ok(carsFromService);
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<CarDto>> Get(int id)
+        {
+            var car = await _carService.Get(id);
             if (car == null) return NotFound();
             //var result = new CarDto
             //{
@@ -62,9 +70,9 @@ namespace Web3_Afternoon.Controllers
         }
 
         [HttpGet("{id:int}/extend")]
-        public ActionResult<CarExtendDto> GetExtend(int id)
+        public async Task<ActionResult<CarExtendDto>> GetExtend(int id)
         {
-            var car = _carService.Get(id);
+            var car = await _carService.Get(id);
             if (car == null) return NotFound();
             //var result = new CarExtendDto
             //{
@@ -82,9 +90,9 @@ namespace Web3_Afternoon.Controllers
         }
 
         [HttpGet("extend")]
-        public ActionResult<IEnumerable<CarExtendDto>> GetExtendAll()
+        public async Task<ActionResult<IEnumerable<CarExtendDto>>> GetExtendAll()
         {
-            var cars = _carService.Get();
+            var cars = await _carService.Get();
 
             var result = _mapper.Map<IEnumerable<CarExtendDto>>(cars);
 
@@ -92,10 +100,10 @@ namespace Web3_Afternoon.Controllers
         }
 
         [HttpPost]
-        public ActionResult<CarExtendDto> Post([FromBody] CarAddDto dto)
+        public async Task<ActionResult<CarExtendDto>> Post([FromBody] CarAddDto dto)
         {
-            try
-            {
+            //try
+            //{
                 //var car = new Car
                 //{
                 //    Engine = dto.Engine,
@@ -106,7 +114,7 @@ namespace Web3_Afternoon.Controllers
 
                 var car = _mapper.Map<Car>(dto);
 
-                var createdCar = _carService.Add(car);
+                var createdCar = await _carService.Add(car);
 
                 //var returnDto = new CarExtendDto
                 //{
@@ -122,19 +130,19 @@ namespace Web3_Afternoon.Controllers
                 return CreatedAtAction(nameof(Get),
                     new { id = returnDto.Id },
                     returnDto);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            //}
+            //catch (Exception ex)
+            //{
+            //    return BadRequest(ex.Message);
+            //}
         }
 
         [HttpPut("{id:int}")]
-        public ActionResult Put(int id, [FromBody] Car car)
+        public async Task<ActionResult> Put(int id, [FromBody] Car car)
         {
             try
             {
-                var exist = _carService.Get(id);
+                var exist = await _carService.Get(id);
 
                 if (exist == null) return NotFound();
 
@@ -142,7 +150,7 @@ namespace Web3_Afternoon.Controllers
                 exist.Model = car.Model;
                 exist.Year = car.Year;
 
-                var updated = _carService.Update(exist);
+                var updated = await _carService.Update(exist);
                 return NoContent();
             }
             catch (Exception ex)

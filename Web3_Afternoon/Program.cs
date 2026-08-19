@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Web3_Afternoon.Data;
 using Web3_Afternoon.Formatters;
+using Web3_Afternoon.Middlewares;
 using Web3_Afternoon.Repository.Abstract;
 using Web3_Afternoon.Repository.Concrete;
 using Web3_Afternoon.Services;
@@ -53,7 +54,12 @@ namespace Web3_Afternoon
                 app.UseSwaggerUI();
             }
 
+            app.UseMiddleware<ExceptionMiddleware>();
+
             app.UseHttpsRedirection();
+
+            app.UseMiddleware<RequestLoggingMiddleware>();
+
 
             app.UseAuthorization();
 

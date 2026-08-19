@@ -1,4 +1,5 @@
 ﻿using Web3_Afternoon.Entities;
+using Web3_Afternoon.Models;
 using Web3_Afternoon.Repository.Abstract;
 using Web3_Afternoon.Services.Abstract;
 
@@ -13,27 +14,32 @@ namespace Web3_Afternoon.Services.Concrete
             _carRepository = carRepository;
         }
 
-        public Car Add(Car car)
+        public async Task<Car> Add(Car car)
         {
-            var result=_carRepository.Add(car);
-            _carRepository.SaveChanges();
+            var result=await _carRepository.Add(car);
+            await _carRepository.SaveChanges();
             return result;
         }
 
-        public bool Delete(Car car)
+        public async Task<bool> Delete(Car car)
         {
-            _carRepository.Delete(car);
-            return _carRepository.SaveChanges();
+            await _carRepository.Delete(car);
+            return await _carRepository.SaveChanges();
         }
 
-        public IQueryable<Car> Get()
+        public async Task<List<Car>> Get()
         {
-            return _carRepository.Get();
+            return await _carRepository.Get();
         }
 
-        public Car? Get(int id)
+        public async Task<Car?> Get(int id)
         {
-            return _carRepository.Get(id);
+            return await _carRepository.Get(id);
+        }
+
+        public async Task<PagedResult<Car>> GetAll(int page, int pageSize)
+        {
+            return await _carRepository.GetAll(page, pageSize);
         }
 
         public int GetCarAge(Car car)
@@ -42,10 +48,10 @@ namespace Web3_Afternoon.Services.Concrete
             return difference > 0 ? difference : 0;
         }
 
-        public Car Update(Car car)
+        public async Task<Car> Update(Car car)
         {
-            var result=_carRepository.Update(car);
-            _carRepository.SaveChanges();
+            var result=await _carRepository.Update(car);
+            await _carRepository.SaveChanges();
             return result;
         }
     }

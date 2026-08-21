@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Web3_Afternoon.Entities;
 
 namespace Web3_Afternoon.Data
 {
-    public class CarDBContext:DbContext
+    public class CarDBContext:IdentityDbContext<ApplicationUser>
     {
         public CarDBContext(DbContextOptions<CarDBContext> options)
             :base(options)

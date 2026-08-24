@@ -11,7 +11,7 @@ namespace Web3_Afternoon.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+
     public class CarsController : ControllerBase
     {
         private readonly ICarService _carService;
@@ -72,6 +72,7 @@ namespace Web3_Afternoon.Controllers
         }
 
         [HttpGet("{id:int}/extend")]
+        [Authorize(Roles ="Admin")]
         public async Task<ActionResult<CarExtendDto>> GetExtend(int id)
         {
             var car = await _carService.Get(id);
@@ -92,6 +93,7 @@ namespace Web3_Afternoon.Controllers
         }
 
         [HttpGet("extend")]
+        [Authorize(Roles ="Manager")]
         public async Task<ActionResult<IEnumerable<CarExtendDto>>> GetExtendAll()
         {
             var cars = await _carService.Get();

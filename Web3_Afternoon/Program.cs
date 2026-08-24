@@ -1,9 +1,11 @@
 ﻿
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Threading.Tasks;
 using Web3_Afternoon.Data;
 using Web3_Afternoon.Entities;
 using Web3_Afternoon.Formatters;
@@ -18,7 +20,7 @@ namespace Web3_Afternoon
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -84,6 +86,7 @@ namespace Web3_Afternoon
                 options.Password.RequireUppercase = true;
                 options.Password.RequiredLength = 6;
             })
+            .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<CarDBContext>();
 
 
@@ -124,6 +127,50 @@ namespace Web3_Afternoon
 
 
             var app = builder.Build();
+
+
+            using (var scope=app.Services.CreateScope())
+            {
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+                string[] roles =
+                {
+                    "User",
+                    "Admin",
+                    "Manager"
+                };
+
+                foreach (var role in roles)
+                {
+                    if(!await roleManager.RoleExistsAsync(role))
+                    {
+                        await roleManager.CreateAsync(new IdentityRole(role));
+                    }
+                }
+
+                var userManager=scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+                var adminEmail = "admin1@test.com";
+
+                var admin=await userManager.FindByEmailAsync(adminEmail);
+
+                if (admin == null)
+                {
+                    admin = new ApplicationUser
+                    {
+                        Fullname = "System Admin",
+                        UserName = adminEmail,
+                        Email = adminEmail,
+                        EmailConfirmed = true
+                    };
+
+                    await userManager.CreateAsync(admin,"Admin_123");
+
+                    await userManager.AddToRoleAsync(admin, "Admin");
+
+                }
+
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Web3_Afternoon.Data;
 
@@ -11,9 +12,11 @@ using Web3_Afternoon.Data;
 namespace Web3_Afternoon.Migrations
 {
     [DbContext(typeof(CarDBContext))]
-    partial class CarDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260824113244_refreshtoken")]
+    partial class refreshtoken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

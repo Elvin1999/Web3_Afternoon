@@ -2,6 +2,7 @@
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Web3_Afternoon.Entities;
 using Web3_Afternoon.Services.Abstract;
@@ -20,7 +21,18 @@ namespace Web3_Afternoon.Services.Concrete
             _userManager = userManager;
         }
 
-        public string GenerateToken(ApplicationUser user)
+        public string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+
+            using var rng=RandomNumberGenerator.Create();
+
+            rng.GetBytes(randomNumber);
+
+            return Convert.ToBase64String(randomNumber);
+        }
+
+        public async Task<string> GenerateToken(ApplicationUser user)
         {
             var claims = new List<Claim>
             {
@@ -32,6 +44,13 @@ namespace Web3_Afternoon.Services.Concrete
                 new Claim(ClaimTypes.Email,
                 user.Email!)
             };
+
+            var roles=await _userManager.GetRolesAsync(user);
+
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
@@ -48,6 +67,53 @@ namespace Web3_Afternoon.Services.Concrete
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
+        {
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = true,
+                ValidateIssuer = true,
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = false,
+
+                ValidIssuer = _configuration["Jwt:Issuer"],
+                ValidAudience = _configuration["Jwt:Audience"],
+
+                IssuerSigningKey =
+                new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!))
+
+            };
+
+            var tokenHandler=new JwtSecurityTokenHandler();
+
+            try
+            {
+                var principal = tokenHandler.ValidateToken(token,
+                    tokenValidationParameters,
+                    out var securityToken);
+
+                if(securityToken is not JwtSecurityToken jwtToken)
+                {
+                    return null;
+                }
+
+                if (!jwtToken.Header.Alg.Equals(
+                    SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase
+                    ))
+                {
+                    return null;
+                }
+
+                return principal;
+            }
+            catch
+            {
+                return null;
+            }
+
         }
     }
 }

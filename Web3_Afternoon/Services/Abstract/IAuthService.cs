@@ -1,9 +1,12 @@
-﻿using Web3_Afternoon.Entities;
+﻿using System.Security.Claims;
+using Web3_Afternoon.Entities;
 
 namespace Web3_Afternoon.Services.Abstract
 {
     public interface IAuthService
     {
-        string GenerateToken(ApplicationUser user);
+        Task<string> GenerateToken(ApplicationUser user);
+        string GenerateRefreshToken();
+        ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
     }
 }

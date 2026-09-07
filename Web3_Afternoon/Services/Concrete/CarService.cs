@@ -16,7 +16,7 @@ namespace Web3_Afternoon.Services.Concrete
 
         public async Task<Car> Add(Car car)
         {
-            var result=await _carRepository.Add(car);
+            var result = await _carRepository.Add(car);
             await _carRepository.SaveChanges();
             return result;
         }
@@ -50,7 +50,7 @@ namespace Web3_Afternoon.Services.Concrete
 
         public async Task<Car> Update(Car car)
         {
-            var result=await _carRepository.Update(car);
+            var result = await _carRepository.Update(car);
             await _carRepository.SaveChanges();
             return result;
         }

@@ -57,6 +57,7 @@ namespace Web3_Afternoon.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize]
         public async Task<ActionResult<CarDto>> Get(int id)
         {
             var car = await _carService.Get(id);

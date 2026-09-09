@@ -39,6 +39,7 @@ namespace Web3_Afternoon.Controllers
         //}
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<CarDto>>> Get()
         {
             //var cars = _carService.Get()
@@ -55,19 +56,14 @@ namespace Web3_Afternoon.Controllers
             var carsFromService = await _carService.GetAll(page, pageSize);
             return Ok(carsFromService);
         }
-
+        
         [HttpGet("{id:int}")]
         [Authorize]
         public async Task<ActionResult<CarDto>> Get(int id)
         {
             var car = await _carService.Get(id);
             if (car == null) return NotFound();
-            //var result = new CarDto
-            //{
-            //    Id = car.Id,
-            //    Model = car.Model,
-            //    Vendor = car.Vendor
-            //};
+            
             var result = _mapper.Map<CarDto>(car);
             return Ok(result);
         }
@@ -105,7 +101,7 @@ namespace Web3_Afternoon.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<CarExtendDto>> Post([FromBody] CarAddDto dto)
+        public async Task<ActionResult> Post([FromBody] CarAddDto dto)
         {
             //try
             //{
@@ -130,11 +126,11 @@ namespace Web3_Afternoon.Controllers
                 //     Engine= createdCar.Engine,
                 //};
 
-                var returnDto = _mapper.Map<CarExtendDto>(createdCar);
+                ////////var returnDto = _mapper.Map<CarExtendDto>(createdCar);
 
                 return CreatedAtAction(nameof(Get),
-                    new { id = returnDto.Id },
-                    returnDto);
+                    new { id = createdCar.Id },
+                    createdCar);
             //}
             //catch (Exception ex)
             //{
@@ -162,6 +158,23 @@ namespace Web3_Afternoon.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin")]
+
+        public async Task<ActionResult> Delete(int id)
+        {
+            var car = await _carService.Get(id);
+            if (car == null)
+            {
+                return NotFound();
+            }
+
+
+            var hasDeleted = await _carService.Delete(car);
+
+            return Ok(hasDeleted);
         }
 
     }
